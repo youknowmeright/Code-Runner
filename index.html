@@ -2,47 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tabbed Code Runner</title>
-  <link rel="stylesheet" href="style.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+  <title>Simple Expression Evaluator</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    textarea { width: 100%; height: 100px; font-size: 1.2rem; }
+    button { padding: 10px 20px; font-size: 1rem; margin-top: 10px; }
+    #result { margin-top: 20px; font-weight: bold; font-size: 1.3rem; }
+  </style>
 </head>
 <body>
-  <div class="app-container">
-    <h1>Tabbed Code Runner</h1>
 
-    <div class="tabs">
-      <button class="tab-button active" data-target="html-editor">
-        <i class="fa-brands fa-html5"></i> HTML
-      </button>
-      <button class="tab-button" data-target="css-editor">
-        <i class="fa-brands fa-css3-alt"></i> CSS
-      </button>
-      <button class="tab-button" data-target="js-editor">
-        <i class="fa-brands fa-js"></i> JavaScript
-      </button>
-    </div>
+  <h2>Simple Expression Evaluator</h2>
+  <textarea id="expr" placeholder="Enter expression, e.g. 3 + 4 * (2 - 1)"></textarea><br />
+  <button onclick="runEvaluator()">Evaluate</button>
+  <div id="result"></div>
 
-    <div class="editors">
-      <textarea id="html-editor" class="editor visible" placeholder="Write your HTML here"></textarea>
-      <textarea id="css-editor" class="editor" placeholder="Write your CSS here"></textarea>
-      <textarea id="js-editor" class="editor" placeholder="Write your JavaScript here"></textarea>
-    </div>
+  <script>
+    // Paste tokenizer, parse, evaluate functions here (from above)
 
-    <button id="run-btn"><i class="fa-solid fa-play"></i> Run Code</button>
+    function tokenize(expr) {
+      const tokens = [];
+      let i = 0;
+      while (i < expr.length) {
+        const char = expr[i];
+        if (char === ' ') {
+          i++; continue;
+        }
+        if ('+-*/()'.includes(char)) {
+          tokens.push({ type: 'operator', value: char });
+          i++; continue;
+        }
+        if (/\d/.test(char)) {
+          let numStr = char;
+          i++;
+          while (i < expr.length && /[\d.]/.test(expr[i])) {
+            numStr += expr[i];
+            i++;
+          }
+          tokens.push({ type: 'number', value: parseFloat(numStr) });
+          continue;
+        }
+        throw new Error(`Unexpected character: ${char}`);
+      }
+      return tokens;
+    }
 
-    <div class="output-wrapper">
-      <label><i class="fa-solid fa-desktop"></i> Output</label>
-      <iframe id="output" sandbox="allow-scripts allow-same-origin"></iframe>
-    </div>
-  </div>
+    function parse(tokens) {
+      let pos = 0;
+      function peek() { return tokens[pos]; }
+      function consume(type, value) {
+        const token = tokens[pos];
+        if (!token || token.type !== type || (value && token.value !== value)) {
+          throw new Error(`Expected token ${type} ${value || ''}`);
+        }
+        pos++;
+        return token;
+      }
+      function parseExpression() {
+        let node = parseTerm();
+        while (peek() && peek().type === 'operator' && (peek().value === '+' || peek().value === '-')) {
+          const op = consume('operator').value;
+          const right = parseTerm();
+          node = { type: 'binary', operator: op, left: node, right };
+        }
+        return node;
+      }
+      function parseTerm() {
+        let node = parseFactor();
+        while (peek() && peek().type === 'operator' && (peek().value === '*' || peek().value === '/')) {
+          const op = consume('operator').value;
+          const right = parseFactor();
+          node = { type: 'binary', operator: op, left: node, right };
+        }
+        return node;
+      }
+      function parseFactor() {
+        if (peek().type === 'number') {
+          return { type: 'number', value: consume('number').value };
+        } else if (peek().type === 'operator' && peek().value === '(') {
+          consume('operator', '(');
+          const node = parseExpression();
+          consume('operator', ')');
+          return node;
+        }
+        throw new Error('Expected number or (expression)');
+      }
+      const ast = parseExpression();
+      if (pos < tokens.length) {
+        throw new Error('Unexpected tokens at the end');
+      }
+      return ast;
+    }
 
-  <script src="script.js"></script>
+    function evaluate(node) {
+      if (node.type === 'number') {
+        return node.value;
+      }
+      if (node.type === 'binary') {
+        const left = evaluate(node.left);
+        const right = evaluate(node.right);
+        switch (node.operator) {
+          case '+': return left + right;
+          case '-': return left - right;
+          case '*': return left * right;
+          case '/': return left / right;
+        }
+      }
+      throw new Error('Invalid node type');
+    }
+
+    function runEvaluator() {
+      const input = document.getElementById('expr').value;
+      const resultDiv = document.getElementById('result');
+      try {
+        const tokens = tokenize(input);
+        const ast = parse(tokens);
+        const result = evaluate(ast);
+        resultDiv.textContent = `Result: ${result}`;
+        resultDiv.style.color = 'green';
+      } catch (e) {
+        resultDiv.textContent = `Error: ${e.message}`;
+        resultDiv.style.color = 'red';
+      }
+    }
+  </script>
 </body>
 </html>
