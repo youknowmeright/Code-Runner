@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabbed Code Runner</title>
+  <link rel="stylesheet" href="style.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body>
+  <div class="app-container">
+    <h1>Tabbed Code Runner</h1>
+
+    <div class="tabs">
+      <button class="tab-button active" data-target="html-editor">
+        <i class="fa-brands fa-html5"></i> HTML
+      </button>
+      <button class="tab-button" data-target="css-editor">
+        <i class="fa-brands fa-css3-alt"></i> CSS
+      </button>
+      <button class="tab-button" data-target="js-editor">
+        <i class="fa-brands fa-js"></i> JavaScript
+      </button>
+    </div>
+
+    <div class="editors">
+      <textarea id="html-editor" class="editor visible" placeholder="Write your HTML here"></textarea>
+      <textarea id="css-editor" class="editor" placeholder="Write your CSS here"></textarea>
+      <textarea id="js-editor" class="editor" placeholder="Write your JavaScript here"></textarea>
+    </div>
+
+    <button id="run-btn"><i class="fa-solid fa-play"></i> Run Code</button>
+
+    <div class="output-wrapper">
+      <label><i class="fa-solid fa-desktop"></i> Output</label>
+      <iframe id="output" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
